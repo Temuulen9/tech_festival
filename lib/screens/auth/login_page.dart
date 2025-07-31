@@ -4,7 +4,7 @@ import 'package:tech_festival/core/utils/secure_storage.dart';
 import 'package:tech_festival/screens/auth/bloc/auth_bloc.dart';
 import 'package:tech_festival/screens/auth/bloc/auth_event.dart';
 import 'package:tech_festival/screens/auth/bloc/auth_state.dart';
-import 'package:tech_festival/screens/nfc_scanner_page.dart';
+import 'package:tech_festival/screens/nfc_scanner/nfc_scanner_page.dart';
 import 'package:tech_festival/widgets/toast.dart';
 
 class LoginPage extends StatefulWidget {

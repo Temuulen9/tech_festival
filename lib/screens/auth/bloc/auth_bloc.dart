@@ -3,6 +3,7 @@ import 'package:tech_festival/core/api/api_client.dart';
 import 'package:tech_festival/core/api/app_exception.dart';
 import 'package:tech_festival/core/api/base_response.dart';
 import 'package:tech_festival/core/utils/secure_storage.dart';
+import 'package:tech_festival/core/utils/shared_pref.dart';
 import 'package:tech_festival/screens/auth/bloc/auth_event.dart';
 import 'package:tech_festival/screens/auth/bloc/auth_state.dart';
 
@@ -29,6 +30,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           key: SecStorageKeys.accessToken,
           value: response.data['data']['accessToken'],
         );
+
+        await SharedPref.setRoleCode(
+            role: response.data['data']['user']['role']);
 
         emit(LoginSuccess());
       } else {
