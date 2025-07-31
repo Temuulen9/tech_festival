@@ -29,3 +29,29 @@ class GetBeweragesError extends BeweragesState {
   @override
   List<Object?> get props => [message];
 }
+
+class BewerageQuantityChanged extends BeweragesState {
+  final BalanceData bewerage;
+  final int quantity;
+
+  const BewerageQuantityChanged({
+    required this.bewerage,
+    required this.quantity,
+  });
+
+  @override
+  List<Object?> get props => [bewerage, quantity];
+}
+
+class UpdateBalanceLoading extends BeweragesState {}
+
+class UpdateBalanceSuccess extends BeweragesState {}
+
+class UpdateBalanceError extends BeweragesState {
+  final String message;
+
+  const UpdateBalanceError({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}

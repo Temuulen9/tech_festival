@@ -1,6 +1,6 @@
 class UpdateBalanceRequest {
   final String tag;
-  final List<BalanceValue> value;
+  final List<Map<String, dynamic>> value;
 
   UpdateBalanceRequest({
     required this.tag,
@@ -10,7 +10,7 @@ class UpdateBalanceRequest {
   Map<String, dynamic> toJson() {
     return {
       'tag': tag,
-      'value': value.map((v) => v.toJson()).toList(),
+      'value': value,
     };
   }
 }

@@ -1,6 +1,9 @@
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:tech_festival/core/models/balance_response.dart';
+import 'package:tech_festival/screens/bewerages_page/bloc/bewerages_bloc.dart';
+import 'package:tech_festival/screens/bewerages_page/bloc/bewerages_event.dart';
 
 class BewerageCard extends StatefulWidget {
   final BalanceData bewerage;
@@ -23,9 +26,20 @@ class _BewerageCardState extends State<BewerageCard> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(widget.bewerage.categoryName),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.bewerage.categoryName).normal,
+                const SizedBox(height: 4),
+                Text(
+                  'Үлдэгдэл: ${widget.bewerage.remaining}',
+                  style: const TextStyle(fontSize: 14),
+                ).extraLight,
+              ],
+            ),
             const Spacer(),
             Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Row(
                   children: [
@@ -36,6 +50,12 @@ class _BewerageCardState extends State<BewerageCard> {
                             (int.tryParse(_textEditingController.text) ?? 0);
                         if (value > 0) {
                           _textEditingController.text = (value - 1).toString();
+                          context.read<BeweragesBloc>().add(
+                                ChangeBewerageQuantityEvent(
+                                  bewerage: widget.bewerage,
+                                  quantity: value - 1,
+                                ),
+                              );
                           HapticFeedback.lightImpact();
                         }
                       },
@@ -52,6 +72,7 @@ class _BewerageCardState extends State<BewerageCard> {
                         keyboardType: TextInputType.number,
                         controller: _textEditingController,
                         textAlign: TextAlign.center,
+                        enabled: widget.bewerage.remaining > 0,
                         onSubmitted: (value) {
                           FocusScope.of(context).unfocus();
                         },
@@ -61,8 +82,27 @@ class _BewerageCardState extends State<BewerageCard> {
                         onChanged: (val) {
                           setState(() {
                             if (val != '') {
-                              if ((int.tryParse(val) ?? 0) > 0) {
+                              final value = (int.tryParse(val) ?? 0);
+
+                              if (value > widget.bewerage.remaining) {
+                                _textEditingController.text =
+                                    widget.bewerage.remaining.toString();
+                                context.read<BeweragesBloc>().add(
+                                      ChangeBewerageQuantityEvent(
+                                        bewerage: widget.bewerage,
+                                        quantity: widget.bewerage.remaining,
+                                      ),
+                                    );
+                                return;
+                              }
+                              if (value > 0) {
                                 _textEditingController.text = val;
+                                context.read<BeweragesBloc>().add(
+                                      ChangeBewerageQuantityEvent(
+                                        bewerage: widget.bewerage,
+                                        quantity: value,
+                                      ),
+                                    );
                               } else {
                                 _textEditingController.text;
                               }
@@ -81,8 +121,17 @@ class _BewerageCardState extends State<BewerageCard> {
                         setState(() {
                           int value =
                               (int.tryParse(_textEditingController.text) ?? 0);
-                          _textEditingController.text = (value + 1).toString();
-                          HapticFeedback.lightImpact();
+                          if (value < widget.bewerage.remaining) {
+                            _textEditingController.text =
+                                (value + 1).toString();
+                            context.read<BeweragesBloc>().add(
+                                  ChangeBewerageQuantityEvent(
+                                    bewerage: widget.bewerage,
+                                    quantity: value + 1,
+                                  ),
+                                );
+                            HapticFeedback.lightImpact();
+                          }
                         });
                       },
                       variance: ButtonVariance.secondary,

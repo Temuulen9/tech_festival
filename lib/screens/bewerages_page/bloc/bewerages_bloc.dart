@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tech_festival/core/api/api_client.dart';
 import 'package:tech_festival/core/api/app_exception.dart';
@@ -9,6 +8,8 @@ import 'package:tech_festival/screens/bewerages_page/bloc/bewerages_state.dart';
 class BeweragesBloc extends Bloc<BeweragesEvent, BeweragesState> {
   BeweragesBloc() : super(BeweragesInitialized()) {
     on<GetBeweragesEvent>(_onGetGetBeweragesEvent);
+    on<ChangeBewerageQuantityEvent>(_onChangeBewerageQuantityEvent);
+    on<UpdateBalanceEvent>(_onUpdateBalanceEvent);
   }
 
   _onGetGetBeweragesEvent(
@@ -41,9 +42,44 @@ class BeweragesBloc extends Bloc<BeweragesEvent, BeweragesState> {
         ));
       }
     } catch (e) {
-      if (e is DioException) {
-        emit(GetBeweragesError(message: handleException(e)));
+      emit(GetBeweragesError(message: handleException(e)));
+    }
+  }
+
+  _onChangeBewerageQuantityEvent(
+    ChangeBewerageQuantityEvent event,
+    Emitter<BeweragesState> emit,
+  ) async {
+    emit(
+      BewerageQuantityChanged(
+        bewerage: event.bewerage,
+        quantity: event.quantity,
+      ),
+    );
+  }
+
+  _onUpdateBalanceEvent(
+    UpdateBalanceEvent event,
+    Emitter<BeweragesState> emit,
+  ) async {
+    try {
+      emit(UpdateBalanceLoading());
+
+      final response =
+          await Api.client.put('/transaction/update-balance', data: {
+        'tag': event.request.tag,
+        'value': event.request.value,
+      });
+
+      if (response.statusCode == 200) {
+        emit(UpdateBalanceSuccess());
+      } else {
+        emit(UpdateBalanceError(
+          message: response.statusMessage ?? 'Хүсэлт амжилтгүй',
+        ));
       }
+    } catch (e) {
+      emit(UpdateBalanceError(message: handleException(e)));
     }
   }
 }
