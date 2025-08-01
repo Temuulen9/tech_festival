@@ -117,10 +117,21 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
                           : Column(
                               children: [
                                 if (_nfcSessionStarted)
-                                  Text(
-                                    _isRegisterScanning
-                                        ? 'Scanning NFC for register'
-                                        : 'Scanning NFC for order',
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        _isRegisterScanning
+                                            ? 'Scanning NFC for register'
+                                            : 'Scanning NFC for order',
+                                      ),
+                                      const Gap(16),
+                                      const CircularProgressIndicator(
+                                        size: 24,
+                                      ),
+                                    ],
                                   ),
                                 if (!_isRegisterScanning || !_nfcSessionStarted)
                                   PrimaryButton(
