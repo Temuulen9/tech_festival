@@ -300,24 +300,43 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
 
   void _writeToTag(NfcTag tag) async {
     try {
-      NdefAndroid? ndefTag = NdefAndroid.from(tag);
+      if (Platform.isAndroid) {
+        NdefAndroid? ndefTag = NdefAndroid.from(tag);
 
-      if (ndefTag?.isWritable == false) {
-        return;
+        if (ndefTag?.isWritable == false) {
+          return;
+        }
+
+        final ndefMessage = NdefMessage(
+          records: [
+            NdefRecord(
+              typeNameFormat: TypeNameFormat.wellKnown,
+              type: Uint8List.fromList(utf8.encode('T')),
+              identifier: Uint8List(0),
+              payload: _createTextRecordPayload('techpack', languageCode: 'en'),
+            ),
+          ],
+        );
+
+        await ndefTag?.writeNdefMessage(ndefMessage);
+      } else if (Platform.isIOS) {
+        NdefIos? ndefTag = NdefIos.from(tag);
+        if (ndefTag?.status == NdefStatusIos.readWrite) {
+          final ndefMessage = NdefMessage(
+            records: [
+              NdefRecord(
+                typeNameFormat: TypeNameFormat.wellKnown,
+                type: Uint8List.fromList(utf8.encode('T')),
+                identifier: Uint8List(0),
+                payload:
+                    _createTextRecordPayload('techpack', languageCode: 'en'),
+              ),
+            ],
+          );
+
+          await ndefTag?.writeNdef(ndefMessage);
+        }
       }
-
-      final ndefMessage = NdefMessage(
-        records: [
-          NdefRecord(
-            typeNameFormat: TypeNameFormat.wellKnown,
-            type: Uint8List.fromList(utf8.encode('T')),
-            identifier: Uint8List(0),
-            payload: _createTextRecordPayload('techpack', languageCode: 'en'),
-          ),
-        ],
-      );
-
-      await ndefTag?.writeNdefMessage(ndefMessage);
     } catch (e) {
       debugPrint('Error $e');
     }
