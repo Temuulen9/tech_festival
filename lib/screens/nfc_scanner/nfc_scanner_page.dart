@@ -116,6 +116,12 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
                           ? const Text('Please enable NFC from settings.')
                           : Column(
                               children: [
+                                if (_nfcSessionStarted)
+                                  Text(
+                                    _isRegisterScanning
+                                        ? 'Scanning NFC for register'
+                                        : 'Scanning NFC for order',
+                                  ),
                                 if (!_isRegisterScanning || !_nfcSessionStarted)
                                   PrimaryButton(
                                     onPressed: () {
@@ -126,7 +132,7 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
                                     },
                                     density: ButtonDensity.icon,
                                     child: Text(_nfcSessionStarted
-                                        ? 'Stop scan NFC'
+                                        ? 'Stop scanning NFC'
                                         : 'Start scan NFC'),
                                   ).p(),
                                 if (_isAdmin) const Gap(16),
