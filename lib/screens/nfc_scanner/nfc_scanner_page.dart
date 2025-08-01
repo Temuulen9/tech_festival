@@ -319,24 +319,25 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
         );
 
         await ndefTag?.writeNdefMessage(ndefMessage);
-      } else if (Platform.isIOS) {
-        NdefIos? ndefTag = NdefIos.from(tag);
-        if (ndefTag?.status == NdefStatusIos.readWrite) {
-          final ndefMessage = NdefMessage(
-            records: [
-              NdefRecord(
-                typeNameFormat: TypeNameFormat.wellKnown,
-                type: Uint8List.fromList(utf8.encode('T')),
-                identifier: Uint8List(0),
-                payload:
-                    _createTextRecordPayload('techpack', languageCode: 'en'),
-              ),
-            ],
-          );
-
-          await ndefTag?.writeNdef(ndefMessage);
-        }
       }
+      // else if (Platform.isIOS) {
+      //   NdefIos? ndefTag = NdefIos.from(tag);
+      //   if (ndefTag?.status == NdefStatusIos.readWrite) {
+      //     final ndefMessage = NdefMessage(
+      //       records: [
+      //         NdefRecord(
+      //           typeNameFormat: TypeNameFormat.wellKnown,
+      //           type: Uint8List.fromList(utf8.encode('T')),
+      //           identifier: Uint8List(0),
+      //           payload:
+      //               _createTextRecordPayload('techpack111', languageCode: 'en'),
+      //         ),
+      //       ],
+      //     );
+
+      //     await ndefTag?.writeNdef(ndefMessage);
+      //   }
+      // }
     } catch (e) {
       debugPrint('Error $e');
     }
