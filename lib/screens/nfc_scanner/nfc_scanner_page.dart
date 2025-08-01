@@ -130,8 +130,9 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
                                         : 'Start scan NFC'),
                                   ).p(),
                                 if (_isAdmin) const Gap(16),
-                                if (_isAdmin && _isRegisterScanning ||
-                                    !_nfcSessionStarted)
+                                if (_isAdmin &&
+                                    (_isRegisterScanning ||
+                                        !_nfcSessionStarted))
                                   PrimaryButton(
                                     onPressed: () {
                                       _isRegisterScanning = true;
