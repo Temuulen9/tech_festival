@@ -37,7 +37,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(LoginSuccess());
       } else {
         emit(LoginError(
-          message: responseData.error ?? 'Хүсэлт амжилтгүй',
+          message: responseData.error?['message'] ?? 'Хүсэлт амжилтгүй',
         ));
       }
     } catch (e) {

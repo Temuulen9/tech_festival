@@ -26,7 +26,7 @@ class NfcScannerBloc extends Bloc<NfcScannerEvent, NfcScannerState> {
         emit(NfcRegisterSuccess());
       } else {
         emit(NfcRegisterError(
-          message: responseData.error ?? 'Хүсэлт амжилтгүй',
+          message: responseData.error?['message'] ?? 'Хүсэлт амжилтгүй',
         ));
       }
     } catch (e) {

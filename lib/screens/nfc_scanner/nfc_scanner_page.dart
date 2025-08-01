@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nfc_manager/ndef_record.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import 'package:nfc_manager/nfc_manager_android.dart';
 import 'package:nfc_manager/nfc_manager_ios.dart';
@@ -28,6 +31,10 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
   String? nfcSerialNumber;
 
   bool _isAdmin = false;
+
+  bool _nfcProccessing = false;
+  bool _isRegisterScanning = false;
+
   @override
   void initState() {
     _isAdmin = SharedPref.getRoleCode() == 'admin';
@@ -53,7 +60,21 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
   }
 
   void _listener(BuildContext context, NfcScannerState state) {
-    if (state is NfcRegisterError) {
+    if (state is NfcRegisterSuccess) {
+      showToast(
+        context: context,
+        builder: (context, overlay) {
+          return buildToast(
+            context,
+            overlay,
+            title: 'Амжилттай',
+            subtitle: 'Tag амжилттай бүртгэлээ',
+          );
+        },
+        location: ToastLocation.topCenter,
+      );
+      _stopNfcSession();
+    } else if (state is NfcRegisterError) {
       showToast(
         context: context,
         builder: (context, overlay) {
@@ -66,6 +87,7 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
         },
         location: ToastLocation.topCenter,
       );
+      _stopNfcSession();
     }
   }
 
@@ -73,6 +95,7 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
     return Scaffold(
       child: state is NfcRegisterLoading
           ? const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CircularProgressIndicator(
                   size: 48,
@@ -81,55 +104,64 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
             )
           : Padding(
               padding: const EdgeInsets.all(32.0),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    _isAvailable == null
-                        ? const CircularProgressIndicator(
-                            size: 48,
-                          )
-                        : _isAvailable == false
-                            ? const Text('Please enable NFC from settings.')
-                            : PrimaryButton(
-                                onPressed: _nfcSessionStarted
-                                    ? _stopNfcSession
-                                    : _startNfcSession,
-                                density: ButtonDensity.icon,
-                                child: Text(_nfcSessionStarted
-                                    ? 'Stop NFC'
-                                    : 'Scan NFC'),
-                              ).p(),
-                    if (_isAdmin) const Gap(16),
-                    if (_isAdmin)
-                      PrimaryButton(
-                        onPressed: () {
-                          _nfcSessionStarted
-                              ? _stopNfcSession()
-                              : _startNfcSession(isRegister: true);
-                        },
-                        density: ButtonDensity.icon,
-                        child: Text(_nfcSessionStarted
-                            ? 'Scanning NFC'
-                            : 'Register NFC'),
-                      ).p(),
-                    const Gap(16),
-                    PrimaryButton(
-                      onPressed: () {
-                        SecStorage().delete(key: SecStorageKeys.accessToken);
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginPage(),
-                          ),
-                        );
-                      },
-                      density: ButtonDensity.icon,
-                      child: const Text('Log out'),
-                    ).p(),
-                  ],
-                ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  const Gap(16),
+                  _isAvailable == null
+                      ? const CircularProgressIndicator(
+                          size: 48,
+                        )
+                      : _isAvailable == false
+                          ? const Text('Please enable NFC from settings.')
+                          : Column(
+                              children: [
+                                if (!_isRegisterScanning || !_nfcSessionStarted)
+                                  PrimaryButton(
+                                    onPressed: () {
+                                      _isRegisterScanning = false;
+                                      _nfcSessionStarted
+                                          ? _stopNfcSession()
+                                          : _startNfcSession(isRegister: false);
+                                    },
+                                    density: ButtonDensity.icon,
+                                    child: Text(_nfcSessionStarted
+                                        ? 'Stop scan NFC'
+                                        : 'Start scan NFC'),
+                                  ).p(),
+                                if (_isAdmin) const Gap(16),
+                                if (_isAdmin && _isRegisterScanning ||
+                                    !_nfcSessionStarted)
+                                  PrimaryButton(
+                                    onPressed: () {
+                                      _isRegisterScanning = true;
+                                      _nfcSessionStarted
+                                          ? _stopNfcSession()
+                                          : _startNfcSession(isRegister: true);
+                                    },
+                                    density: ButtonDensity.icon,
+                                    child: Text(_nfcSessionStarted
+                                        ? 'Stop scanning NFC'
+                                        : 'Register NFC'),
+                                  ).p(),
+                                const Gap(16),
+                              ],
+                            ),
+                  PrimaryButton(
+                    onPressed: () {
+                      SecStorage().delete(key: SecStorageKeys.accessToken);
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginPage(),
+                        ),
+                      );
+                    },
+                    density: ButtonDensity.icon,
+                    child: const Text('Log out'),
+                  ).p(),
+                ],
               ),
             ),
     );
@@ -150,6 +182,9 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
           NfcPollingOption.iso15693,
         },
         onDiscovered: (NfcTag tag) async {
+          if (_nfcProccessing) {
+            return;
+          }
           nfcSerialNumber = '';
           if (Platform.isAndroid) {
             NfcAAndroid? androidTag = NfcAAndroid.from(tag);
@@ -158,19 +193,6 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
                 .map((b) => b.toRadixString(16).toUpperCase().padLeft(2, '0'))
                 .join(':');
             nfcSerialNumber = uidHex;
-            showToast(
-              context: context,
-              showDuration: const Duration(seconds: 1),
-              builder: (context, overlay) {
-                return buildToast(
-                  context,
-                  overlay,
-                  title: 'Амжилттай',
-                  subtitle: uidHex ?? 'Empty',
-                );
-              },
-              location: ToastLocation.topCenter,
-            );
           }
 
           if (Platform.isIOS) {
@@ -185,35 +207,42 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
             } else {
               debugPrint('iOS tag is not NDEF');
             }
-
-            showToast(
-              context: context,
-              showDuration: const Duration(seconds: 1),
-              builder: (context, overlay) {
-                return buildToast(
-                  context,
-                  overlay,
-                  title: 'Амжилттай',
-                  subtitle: uidHex.toString(),
-                );
-              },
-              location: ToastLocation.topCenter,
-            );
+            _stopNfcSession();
           }
-          _stopNfcSession();
+
+          showToast(
+            context: context,
+            showDuration: const Duration(seconds: 1),
+            builder: (context, overlay) {
+              return buildToast(
+                context,
+                overlay,
+                title: 'Амжилттай',
+                subtitle: nfcSerialNumber.toString(),
+              );
+            },
+            location: ToastLocation.topCenter,
+          );
+
           if (isRegister) {
+            _writeToTag(tag);
             _bloc.add(RegisterNfc(serialNumber: nfcSerialNumber ?? ''));
             return;
           }
           debugPrint('serial number $nfcSerialNumber');
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => BeweragesPage(
-                tag: nfcSerialNumber!,
+          if (nfcSerialNumber != null) {
+            _nfcProccessing = true;
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => BeweragesPage(
+                  tag: nfcSerialNumber!,
+                ),
               ),
-            ),
-          );
+            ).then((_) {
+              _nfcProccessing = false;
+            });
+          }
         },
         onSessionErrorIos: (p0) async {
           showToast(
@@ -236,6 +265,7 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
         _nfcSessionStarted = !_nfcSessionStarted;
       });
     } catch (e) {
+      await NfcManager.instance.stopSession();
       setState(() {
         _nfcSessionStarted = false;
       });
@@ -248,5 +278,42 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
     setState(() {
       _nfcSessionStarted = !_nfcSessionStarted;
     });
+  }
+
+  void _writeToTag(NfcTag tag) async {
+    try {
+      NdefAndroid? ndefTag = NdefAndroid.from(tag);
+
+      if (ndefTag?.isWritable == false) {
+        return;
+      }
+
+      final ndefMessage = NdefMessage(
+        records: [
+          NdefRecord(
+            typeNameFormat: TypeNameFormat.wellKnown,
+            type: Uint8List.fromList(utf8.encode('T')),
+            identifier: Uint8List(0),
+            payload: _createTextRecordPayload('techpack', languageCode: 'en'),
+          ),
+        ],
+      );
+
+      await ndefTag?.writeNdefMessage(ndefMessage);
+    } catch (e) {
+      debugPrint('Error $e');
+    }
+  }
+
+  Uint8List _createTextRecordPayload(String text,
+      {String languageCode = 'en'}) {
+    final languageCodeBytes = utf8.encode(languageCode);
+    final textBytes = utf8.encode(text);
+
+    // Status byte: bit7 = 0 means UTF-8, lower 6 bits = length of language code
+    final status = languageCodeBytes.length & 0x3F;
+
+    final payloadBytes = <int>[status, ...languageCodeBytes, ...textBytes];
+    return Uint8List.fromList(payloadBytes);
   }
 }

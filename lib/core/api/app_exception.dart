@@ -7,9 +7,11 @@ String handleException(ex) {
       if (ex.response?.data != null) {
         // Default
         final baseResponse = ApiBaseResponse.fromJson(ex.response?.data);
-        return baseResponse.error ?? 'Хүсэлт амжилтгүй.';
+
+        return baseResponse.error?['message'] ?? 'Хүсэлт амжилтгүй.';
       } else {
         // Handle specific Dio error types
+
         switch (ex.type) {
           case DioExceptionType.connectionTimeout:
           case DioExceptionType.receiveTimeout:
@@ -40,8 +42,8 @@ String handleException(ex) {
 }
 
 String handleError(ApiBaseResponse responseData) {
-  if (responseData.error != '') {
-    return responseData.error!;
+  if (responseData.error != {}) {
+    return responseData.error?['message'];
   } else {
     return 'Хүсэлт амжилтгүй';
   }
