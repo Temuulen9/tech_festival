@@ -38,112 +38,115 @@ class _BewerageCardState extends State<BewerageCard> {
               ],
             ),
             const Spacer(),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  children: [
-                    IconButton(
-                      density: ButtonDensity.iconDense,
-                      onPressed: () {
-                        int value =
-                            (int.tryParse(_textEditingController.text) ?? 0);
-                        if (value > 0) {
-                          _textEditingController.text = (value - 1).toString();
-                          context.read<BeweragesBloc>().add(
-                                ChangeBewerageQuantityEvent(
-                                  bewerage: widget.bewerage,
-                                  quantity: value - 1,
-                                ),
-                              );
-                          HapticFeedback.lightImpact();
-                        }
-                      },
-                      variance: ButtonVariance.secondary,
-                      icon: const Icon(
-                        BootstrapIcons.arrowDownShort,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    SizedBox(
-                      width: 60,
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        controller: _textEditingController,
-                        textAlign: TextAlign.center,
-                        enabled: widget.bewerage.remaining > 0,
-                        onSubmitted: (value) {
-                          FocusScope.of(context).unfocus();
-                        },
-                        onTapOutside: (event) {
-                          FocusScope.of(context).unfocus();
-                        },
-                        onChanged: (val) {
-                          setState(() {
-                            if (val != '') {
-                              final value = (int.tryParse(val) ?? 0);
-
-                              if (value > widget.bewerage.remaining) {
-                                _textEditingController.text =
-                                    widget.bewerage.remaining.toString();
-                                context.read<BeweragesBloc>().add(
-                                      ChangeBewerageQuantityEvent(
-                                        bewerage: widget.bewerage,
-                                        quantity: widget.bewerage.remaining,
-                                      ),
-                                    );
-                                return;
-                              }
-                              if (value > 0) {
-                                _textEditingController.text = val;
-                                context.read<BeweragesBloc>().add(
-                                      ChangeBewerageQuantityEvent(
-                                        bewerage: widget.bewerage,
-                                        quantity: value,
-                                      ),
-                                    );
-                              } else {
-                                _textEditingController.text;
-                              }
-                            }
-                          });
-                        },
-                        submitFormatters: [
-                          TextInputFormatters.mathExpression(),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    IconButton(
-                      density: ButtonDensity.iconDense,
-                      onPressed: () {
-                        setState(() {
+            if (widget.bewerage.remaining > 0)
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        density: ButtonDensity.iconDense,
+                        onPressed: () {
                           int value =
                               (int.tryParse(_textEditingController.text) ?? 0);
-                          if (value < widget.bewerage.remaining) {
+                          if (value > 0) {
                             _textEditingController.text =
-                                (value + 1).toString();
+                                (value - 1).toString();
                             context.read<BeweragesBloc>().add(
                                   ChangeBewerageQuantityEvent(
                                     bewerage: widget.bewerage,
-                                    quantity: value + 1,
+                                    quantity: value - 1,
                                   ),
                                 );
                             HapticFeedback.lightImpact();
                           }
-                        });
-                      },
-                      variance: ButtonVariance.secondary,
-                      icon: const Icon(
-                        BootstrapIcons.arrowUpShort,
-                        size: 20,
+                        },
+                        variance: ButtonVariance.secondary,
+                        icon: const Icon(
+                          BootstrapIcons.arrowDownShort,
+                          size: 20,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 60,
+                        child: TextField(
+                          keyboardType: TextInputType.number,
+                          controller: _textEditingController,
+                          textAlign: TextAlign.center,
+                          enabled: widget.bewerage.remaining > 0,
+                          onSubmitted: (value) {
+                            FocusScope.of(context).unfocus();
+                          },
+                          onTapOutside: (event) {
+                            FocusScope.of(context).unfocus();
+                          },
+                          onChanged: (val) {
+                            setState(() {
+                              if (val != '') {
+                                final value = (int.tryParse(val) ?? 0);
+
+                                if (value > widget.bewerage.remaining) {
+                                  _textEditingController.text =
+                                      widget.bewerage.remaining.toString();
+                                  context.read<BeweragesBloc>().add(
+                                        ChangeBewerageQuantityEvent(
+                                          bewerage: widget.bewerage,
+                                          quantity: widget.bewerage.remaining,
+                                        ),
+                                      );
+                                  return;
+                                }
+                                if (value > 0) {
+                                  _textEditingController.text = val;
+                                  context.read<BeweragesBloc>().add(
+                                        ChangeBewerageQuantityEvent(
+                                          bewerage: widget.bewerage,
+                                          quantity: value,
+                                        ),
+                                      );
+                                } else {
+                                  _textEditingController.text;
+                                }
+                              }
+                            });
+                          },
+                          submitFormatters: [
+                            TextInputFormatters.mathExpression(),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      IconButton(
+                        density: ButtonDensity.iconDense,
+                        onPressed: () {
+                          setState(() {
+                            int value =
+                                (int.tryParse(_textEditingController.text) ??
+                                    0);
+                            if (value < widget.bewerage.remaining) {
+                              _textEditingController.text =
+                                  (value + 1).toString();
+                              context.read<BeweragesBloc>().add(
+                                    ChangeBewerageQuantityEvent(
+                                      bewerage: widget.bewerage,
+                                      quantity: value + 1,
+                                    ),
+                                  );
+                              HapticFeedback.lightImpact();
+                            }
+                          });
+                        },
+                        variance: ButtonVariance.secondary,
+                        icon: const Icon(
+                          BootstrapIcons.arrowUpShort,
+                          size: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
           ],
         ),
       ).intrinsic(),
