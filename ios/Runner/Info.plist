@@ -28,6 +28,8 @@
 		<string>We use NFC to read and write tags</string>
 		<key>UILaunchStoryboardName</key>
 		<string>LaunchScreen</string>
+		<key>NSCameraUsageDescription</key>
+		<string>We need to access your camera to take photos.</string>
 		<key>UIMainStoryboardFile</key>
 		<string>Main</string>
 		<key>UISupportedInterfaceOrientations</key>
