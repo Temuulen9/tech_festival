@@ -17,7 +17,7 @@ class NfcScannerBloc extends Bloc<NfcScannerEvent, NfcScannerState> {
     try {
       emit(NfcRegisterLoading());
 
-      final response = await Api.client.post('/transaction/create-tag', data: {
+      final response = await Api.client.post('/nfc/create', data: {
         'tag': event.serialNumber,
       });
 

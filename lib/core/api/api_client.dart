@@ -47,7 +47,7 @@ class Api {
   /// Base options for Dio (can be expanded later if needed)
   BaseOptions _getBaseOptions() {
     return BaseOptions(
-      baseUrl: 'http://192.168.0.136:8080/mcs-festival/v1',
+      baseUrl: 'http://15.164.149.97:8080/mcs-festival/v1',
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 60),
     );
