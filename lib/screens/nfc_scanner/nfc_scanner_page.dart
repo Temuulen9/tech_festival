@@ -102,83 +102,119 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
                 ),
               ],
             )
-          : Padding(
-              padding: const EdgeInsets.all(32.0),
+          : SafeArea(
+              bottom: false,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  const Gap(16),
-                  _isAvailable == null
-                      ? const CircularProgressIndicator(
-                          size: 48,
-                        )
-                      : _isAvailable == false
-                          ? const Text('Please enable NFC from settings.')
-                          : Column(
-                              children: [
-                                if (_nfcSessionStarted)
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        _isRegisterScanning
-                                            ? 'Scanning NFC for register'
-                                            : 'Scanning NFC for order',
+                children: [
+                  const Gap(32),
+                  SizedBox(
+                    height: 100,
+                    child: Image.asset(
+                      'assets/images/title.png',
+                    ),
+                  ),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          bottom: 0,
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.45,
+                            child: Image.asset(
+                              'assets/images/bg_fest.png',
+                            ),
+                          ),
+                        ),
+                        Positioned.fill(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32.0),
+                            child: Column(
+                              children: <Widget>[
+                                Gap(MediaQuery.of(context).size.height * 0.075),
+                                _isAvailable == null
+                                    ? const CircularProgressIndicator(
+                                        size: 48,
+                                      )
+                                    : _isAvailable == false
+                                        ? const Text(
+                                            'Please enable NFC from settings.')
+                                        : Column(
+                                            children: [
+                                              if (_nfcSessionStarted)
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  children: [
+                                                    Text(
+                                                      _isRegisterScanning
+                                                          ? 'Scanning NFC for register'
+                                                          : 'Scanning NFC for order',
+                                                    ),
+                                                    const Gap(16),
+                                                    const CircularProgressIndicator(
+                                                      size: 24,
+                                                    ),
+                                                  ],
+                                                ),
+                                              if (!_isRegisterScanning ||
+                                                  !_nfcSessionStarted)
+                                                OutlineButton(
+                                                  onPressed: () {
+                                                    _isRegisterScanning = false;
+                                                    _nfcSessionStarted
+                                                        ? _stopNfcSession()
+                                                        : _startNfcSession(
+                                                            isRegister: false);
+                                                  },
+                                                  density: ButtonDensity.icon,
+                                                  child: Text(_nfcSessionStarted
+                                                      ? 'Stop scanning NFC'
+                                                      : 'Start scan NFC'),
+                                                ).p(),
+                                              if (_isAdmin) const Gap(16),
+                                              if (_isAdmin &&
+                                                  (_isRegisterScanning ||
+                                                      !_nfcSessionStarted))
+                                                OutlineButton(
+                                                  onPressed: () {
+                                                    _isRegisterScanning = true;
+                                                    _nfcSessionStarted
+                                                        ? _stopNfcSession()
+                                                        : _startNfcSession(
+                                                            isRegister: true);
+                                                  },
+                                                  density: ButtonDensity.icon,
+                                                  child: Text(_nfcSessionStarted
+                                                      ? 'Stop scanning NFC'
+                                                      : 'Register NFC'),
+                                                ).p(),
+                                              const Gap(16),
+                                            ],
+                                          ),
+                                OutlineButton(
+                                  onPressed: () {
+                                    SecStorage().delete(
+                                        key: SecStorageKeys.accessToken);
+                                    Navigator.pop(context);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const LoginPage(),
                                       ),
-                                      const Gap(16),
-                                      const CircularProgressIndicator(
-                                        size: 24,
-                                      ),
-                                    ],
-                                  ),
-                                if (!_isRegisterScanning || !_nfcSessionStarted)
-                                  PrimaryButton(
-                                    onPressed: () {
-                                      _isRegisterScanning = false;
-                                      _nfcSessionStarted
-                                          ? _stopNfcSession()
-                                          : _startNfcSession(isRegister: false);
-                                    },
-                                    density: ButtonDensity.icon,
-                                    child: Text(_nfcSessionStarted
-                                        ? 'Stop scanning NFC'
-                                        : 'Start scan NFC'),
-                                  ).p(),
-                                if (_isAdmin) const Gap(16),
-                                if (_isAdmin &&
-                                    (_isRegisterScanning ||
-                                        !_nfcSessionStarted))
-                                  PrimaryButton(
-                                    onPressed: () {
-                                      _isRegisterScanning = true;
-                                      _nfcSessionStarted
-                                          ? _stopNfcSession()
-                                          : _startNfcSession(isRegister: true);
-                                    },
-                                    density: ButtonDensity.icon,
-                                    child: Text(_nfcSessionStarted
-                                        ? 'Stop scanning NFC'
-                                        : 'Register NFC'),
-                                  ).p(),
-                                const Gap(16),
+                                    );
+                                  },
+                                  density: ButtonDensity.icon,
+                                  child: const Text('Log out'),
+                                ).p(),
                               ],
                             ),
-                  PrimaryButton(
-                    onPressed: () {
-                      SecStorage().delete(key: SecStorageKeys.accessToken);
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginPage(),
+                          ),
                         ),
-                      );
-                    },
-                    density: ButtonDensity.icon,
-                    child: const Text('Log out'),
-                  ).p(),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -307,6 +343,9 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
           return;
         }
 
+        const String url = 'https://festival.techpack.mn/summer2025';
+
+        final uriBytes = Uint8List.fromList(url.codeUnits);
         final ndefMessage = NdefMessage(
           records: [
             NdefRecord(
@@ -315,6 +354,12 @@ class _NfcScannerPageState extends State<NfcScannerPage> {
               identifier: Uint8List(0),
               payload: _createTextRecordPayload('techpack', languageCode: 'en'),
             ),
+            NdefRecord(
+              typeNameFormat: TypeNameFormat.wellKnown,
+              type: Uint8List.fromList('U'.codeUnits),
+              identifier: Uint8List(0),
+              payload: Uint8List.fromList([0x00, ...uriBytes]),
+            )
           ],
         );
 

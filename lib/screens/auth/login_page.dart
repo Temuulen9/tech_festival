@@ -70,7 +70,12 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            const Text('Нэвтрэх'),
+            SizedBox(
+              height: 100,
+              child: Image.asset(
+                'assets/images/title.png',
+              ),
+            ),
             Container(
               padding: const EdgeInsets.all(16),
               child: Form(
